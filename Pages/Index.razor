@@ -1,0 +1,64 @@
+﻿@page "/"
+@using Tewr.Blazor.FileReader
+
+@inject IFileReaderService FileReaderService;
+
+<input type="file" @ref=inputTypeFileElement /><button @onclick=ReadFile>Read file</button>
+<Buttons Margin="Margin.Is2.FromRight">
+    <Button Color="Color.Primary" @onclick=Previous>Previous</Button>
+    <Button Color="Color.Secondary" @onclick=Home>Home</Button>
+    <Button Color="Color.Primary" @onclick=Next>Next</Button>
+</Buttons>
+@if (_reader != null)
+{
+    <Figure>
+        <FigureImage Source=@ComicBytes/>
+    </Figure>
+}
+@code
+{
+ [Parameter]
+ public string ComicBytes { get; set; }
+
+ private int currentPage;
+ 
+ ElementReference inputTypeFileElement;
+ private ComicReader _reader;
+  private async Task ReadFile()
+  {
+   var file = (await FileReaderService.CreateReference(inputTypeFileElement).EnumerateFilesAsync()).FirstOrDefault();
+   try
+   {
+      var stream = await file.CreateMemoryStreamAsync();
+      _reader = new ComicReader(stream);
+      LoadPage(0);
+   } catch (Exception ex) {
+     Console.WriteLine(ex);
+   }
+ }
+
+ private void LoadPage(int page) {
+   if (page < 0) {
+     return;
+   }
+   if (page >= _reader.Count) {
+     return;
+   }
+      currentPage = page;
+      ComicBytes = $"data:image/jpg;base64,{_reader.GetPage(page)}";
+ }
+
+  public void Home()
+  {
+    LoadPage(0);
+  }
+
+ private void Next() {
+   LoadPage(++currentPage);
+ }
+
+  private void Previous()
+  {
+    LoadPage(--currentPage);
+  }
+}
