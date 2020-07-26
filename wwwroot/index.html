@@ -13,21 +13,38 @@
     <link href="_content/Blazorise.Bootstrap/blazorise.bootstrap.css" rel="stylesheet" />
 </head>
 
-<body>
-    <app>Loading...</app>
-
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-
-    <script src="_content/Blazorise/blazorise.js"></script>
-    <script src="_content/Blazorise.Bootstrap/blazorise.bootstrap.js"></script>
-    <script src="_framework/blazor.webassembly.js"></script>
-</body>
-
+    <body>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+        
+        <script src="_content/Blazorise/blazorise.js"></script>
+        <script src="_content/Blazorise.Bootstrap/blazorise.bootstrap.js"></script>
+        <!-- GitHub Pages doesn't support Brotli -->
+        <script src="dist/brotli.decode.min.js"></script>
+        <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+        <script>
+            Blazor.start({
+                loadBootResource: function (type, name, defaultUri, integrity) {
+                    if (type !== 'dotnetjs' && location.hostname !== 'localhost') {
+                        return (async function () {
+                            const response = await fetch(defaultUri + '.br', { cache: 'no-cache' });
+                            if (!response.ok) {
+                                throw new Error(response.statusText);
+                            }
+                            const originalResponseBuffer = await response.arrayBuffer();
+                            const originalResponseArray = new Int8Array(originalResponseBuffer);
+                            const decompressedResponseArray = BrotliDecode(originalResponseArray);
+                            const contentType = type === 'dotnetwasm' ? 'application/wasm' : 'application/octet-stream';
+                            return new Response(decompressedResponseArray, { headers: { 'content-type': contentType } });
+                        })();
+                    }
+                }
+            });
+        </script>
+        <script>navigator.serviceWorker.register('service-worker.js');</script>
+        <div id="root">
+            <app><i class="fa fa-circle-o-notch fa-spin font-48"></i></app>
+        </div>
+    </body>
 </html>
