@@ -3,28 +3,42 @@
 
 @inject IFileReaderService FileReaderService;
 
+
+<Modal @ref="_modalRef">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <ModalBody>
+            Loading @PageInfo ...
+        </ModalBody>
+    </ModalContent>
+</Modal>
 <input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/>
 <Buttons Margin="Margin.Is2.FromRight">
-    <Button Color="Color.Primary" @onclick="Previous" @ontouchend="Previous">Previous Page</Button>
-    <Button Color="Color.Secondary" @onclick="Home"  @ontouchend="Home">Home</Button>
-    <Button Color="Color.Primary" @onclick="Next"  @ontouchend="Next">Next Page</Button>
+    <Button Color="Color.Primary" @onclick="Previous">Previous Page</Button>
+    <Button Color="Color.Secondary" @onclick="Home">Home</Button>
+    <Button Color="Color.Primary" @onclick="Next">Next Page</Button>
 </Buttons>
 @if (_reader != null)
 {
     <Figure>
-        <FigureImage Source=@ComicBytes/>
+        <FigureImage Source=@ComicBytes onactivate="Event" onfocus="Event" onloadeddata=Event />
     </Figure>
 }
 
 @code
 {
-    [Parameter]
     public string ComicBytes { get; set; }
+    public string PageInfo { get; set; }
 
     private int _currentPage;
-
+    private Modal _modalRef;
     private ElementReference _inputTypeFileElement;
     private ComicReader _reader;
+
+    private void Event(EventArgs e)
+    {
+        Console.WriteLine(e.GetType().ToString());
+    }
 
     private async Task ReadFile()
     {
@@ -37,7 +51,7 @@
         {
             var stream = await file.CreateMemoryStreamAsync();
             _reader = new ComicReader(stream);
-            LoadPage(0);
+            await LoadPage(0);
         }
         catch (Exception ex)
         {
@@ -45,8 +59,10 @@
         }
     }
 
-    private void LoadPage(int page)
+    private async Task LoadPage(int page)
     {
+        PageInfo = _reader.GetPageInfo(page);
+        _modalRef.Show();
         if (page < 0)
         {
             return;
@@ -56,21 +72,22 @@
             return;
         }
         _currentPage = page;
-        ComicBytes = $"data:image/jpg;base64,{_reader.GetPage(page)}";
+        ComicBytes = $"data:image/jpg;base64,{await _reader.GetPage(page)}";
+        _modalRef.Hide();
     }
 
-    public void Home()
+    public async Task Home()
     {
-        LoadPage(0);
+        await LoadPage(0);
     }
 
-    private void Next()
+    private async Task Next()
     {
-        LoadPage(++_currentPage);
+        await LoadPage(++_currentPage);
     }
 
-    private void Previous()
+    private async Task Previous()
     {
-        LoadPage(--_currentPage);
+        await LoadPage(--_currentPage);
     }
 }
