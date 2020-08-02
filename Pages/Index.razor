@@ -8,7 +8,7 @@
     <ModalBackdrop />
     <ModalContent IsCentered="true">
         <ModalBody>
-            Loading @PageInfo ...
+            Loading @_pageInfo ...
         </ModalBody>
     </ModalContent>
 </Modal>
@@ -21,14 +21,14 @@
 @if (_reader != null)
 {
     <Figure>
-        <FigureImage Source=@ComicBytes onactivate="Event" onfocus="Event" onloadeddata=Event />
+        <FigureImage Source=@_comicBytes onactivate="Event" onfocus="Event" onloadeddata=Event />
     </Figure>
 }
 
 @code
 {
-    public string ComicBytes { get; set; }
-    public string PageInfo { get; set; }
+    private string _comicBytes;
+    private string _pageInfo;
 
     private int _currentPage;
     private Modal _modalRef;
@@ -61,8 +61,9 @@
 
     private async Task LoadPage(int page)
     {
-        PageInfo = _reader.GetPageInfo(page);
+        _pageInfo = _reader.GetPageInfo(page);
         _modalRef.Show();
+        StateHasChanged();
         if (page < 0)
         {
             return;
@@ -72,7 +73,8 @@
             return;
         }
         _currentPage = page;
-        ComicBytes = $"data:image/jpg;base64,{await _reader.GetPage(page)}";
+        _comicBytes = $"data:image/jpg;base64,{await _reader.GetPage(page)}";
+        StateHasChanged();
         _modalRef.Hide();
     }
 

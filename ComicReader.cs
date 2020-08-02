@@ -48,7 +48,7 @@ namespace ComicBlaze
             }
             var memoryStream = new MemoryStream();
             await archiveEntry.OpenEntryStream().CopyToAsync(memoryStream);
-            return Convert.ToBase64String(memoryStream.ToArray());
+            return Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int) memoryStream.Length);
         }
 
         public void Dispose()
