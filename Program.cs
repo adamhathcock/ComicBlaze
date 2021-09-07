@@ -14,7 +14,7 @@ namespace ComicBlaze
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
-            builder.RootComponents.Add<Pages.Index>("app");
+            builder.RootComponents.Add<Pages.Index>("#root");
 
             builder.Services
                 .AddBlazorise(options =>
@@ -28,9 +28,6 @@ namespace ComicBlaze
 
             var host = builder.Build();
 
-            host.Services
-                .UseBootstrapProviders();
-            
             await host.RunAsync();
         }
     }
