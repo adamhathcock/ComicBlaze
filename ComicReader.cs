@@ -19,6 +19,9 @@ namespace ComicBlaze
 
         private static readonly string[] ImageExtensions = { ".jpg", ".png", ".jpeg" };
 
+        public Action<string>? LoadingPage { get; set; }
+        public Action<string>? LoadedPage { get; set; }
+
         public ComicReader(Stream stream)
         {
             _archive = ArchiveFactory.Open(stream, new ReaderOptions()
@@ -36,7 +39,7 @@ namespace ComicBlaze
                 .ToList();
         }
         
-        public async Task<string> GetPageByInfo(string key)
+        public async Task<string?> GetPageByInfo(string key)
         {
             if (!_loadedPages.TryGetValue(key, out var page))
             {
@@ -48,11 +51,16 @@ namespace ComicBlaze
                     return null;
                 }
 
+                LoadingPage?.Invoke(key);
+                await Task.Yield();
+
                 var memoryStream = new MemoryStream();
                 //has a yield to CopyToAsync to let UI go
                 await CopyToAsync(archiveEntry.OpenEntryStream(), memoryStream, 82 * 1000);
                 page = Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
                 _loadedPages.Add(key, page);
+                LoadedPage?.Invoke(key);
+                await Task.Yield();
             }
             return page;
         }

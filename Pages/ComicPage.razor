@@ -7,7 +7,7 @@
 
 @code
 {
-    private string _data;
+    private string? _data;
 
     protected override void BuildClasses( ClassBuilder builder )
     {
@@ -25,9 +25,12 @@
         await base.OnInitializedAsync();
     }
 
-    [Parameter] public string Page { get; set; }
+    [Parameter]
+    public string Page { get; set; } = default!;
     
-    [Parameter] public ComicReader ComicReader { get; set; }
+    [Parameter]
+    public ComicReader ComicReader { get; set; }= default!;
 
-    [Parameter] public string AlternateText { get; set; }
+    [Parameter] 
+    public string? AlternateText { get; set; }
 }

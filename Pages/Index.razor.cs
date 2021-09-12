@@ -8,13 +8,13 @@ namespace ComicBlaze.Pages
 {
     public partial class Index : BaseComponent
     {
-        private string _pageInfo;
+        private string? _pageInfo;
 
-        private Modal _modalRef;
-        private ComicReader _reader;
+        private Modal _modalRef = default!;
+        private ComicReader? _reader;
         private ElementReference _inputTypeFileElement;
 
-        private Carousel _carousel;
+        private Carousel _carousel = default!;
 
         private void SelectedSlideChanged()
         {
@@ -32,6 +32,17 @@ namespace ComicBlaze.Pages
             {
                 var stream = await file.CreateMemoryStreamAsync();
                 _reader = new ComicReader(stream);
+                _reader.LoadingPage = s =>
+                {
+                    _pageInfo = s;
+                    _modalRef.Show();
+                    StateHasChanged();
+                };
+                _reader.LoadedPage = s =>
+                {
+                    _modalRef.Hide();
+                    StateHasChanged();
+                };
             }
             catch (Exception ex)
             {
