@@ -1,0 +1,33 @@
+@using Blazorise.Utilities     
+
+@inherits BaseComponent           
+
+@*FigureImage*@
+<img id="@ElementId" src="@_data" class="@ClassNames" style="@StyleNames" alt="@AlternateText" @attributes="@Attributes" />            
+
+@code
+{
+    private string _data;
+
+    protected override void BuildClasses( ClassBuilder builder )
+    {
+        builder.Append( ClassProvider.FigureImage() );
+        base.BuildClasses( builder );
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_data is null)
+        {
+            Console.WriteLine(Page);
+            _data = $"data:image/jpg;base64,{await ComicReader.GetPageByInfo(Page)}";
+        }
+        await base.OnInitializedAsync();
+    }
+
+    [Parameter] public string Page { get; set; }
+    
+    [Parameter] public ComicReader ComicReader { get; set; }
+
+    [Parameter] public string AlternateText { get; set; }
+}

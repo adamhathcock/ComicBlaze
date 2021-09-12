@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inherits BaseComponent
+
 @using Tewr.Blazor.FileReader
 
 @inject IFileReaderService FileReaderService;
@@ -13,14 +14,18 @@
     </ModalContent>
 </Modal>
 <input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/>
-<Buttons Margin="Blazorise.Margin.Is2.FromRight">
-    <Button Color="Color.Primary" @onclick="Previous">Previous Page</Button>
-    <Button Color="Color.Secondary" @onclick="Home">Home</Button>
-    <Button Color="Color.Primary" @onclick="Next">Next Page</Button>
-</Buttons>
+
 @if (_reader != null)
-{
-    <Figure>
-        <FigureImage Source=@_comicBytes onactivate="Event" onfocus="Event" onloadeddata=Event />
-    </Figure>
+ {
+    <Carousel @ref="_carousel" Autoplay="false" SelectedSlideChanged="SelectedSlideChanged">  
+
+            @foreach(var pageInfo in _reader.GetPageInfos().Select(x => new [] {x}))
+            {
+                <CarouselSlide Name="@pageInfo[0]">    
+                    <Virtualize Context="x" Items="@pageInfo">
+                        <ComicPage Page=@x ComicReader="_reader" />
+                    </Virtualize>
+                </CarouselSlide>
+            }
+    </Carousel>
 }

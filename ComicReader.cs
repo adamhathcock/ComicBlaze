@@ -1,4 +1,6 @@
 using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +15,10 @@ namespace ComicBlaze
     {
         private readonly IArchive _archive;
 
+        private readonly Dictionary<string, string> _loadedPages = new ();
+
+        private static readonly string[] ImageExtensions = { ".jpg", ".png", ".jpeg" };
+
         public ComicReader(Stream stream)
         {
             _archive = ArchiveFactory.Open(stream, new ReaderOptions()
@@ -20,31 +26,60 @@ namespace ComicBlaze
                 ArchiveEncoding = new ArchiveEncoding(Encoding.Default, Encoding.Default)
             });
         }
-
-        public int Count => _archive.Entries.Count();
-
-        public string GetPageInfo(int page)
+        
+        public List<string> GetPageInfos()
         {
-            var archiveEntry = _archive.Entries
-                .Where(x => !x.IsDirectory && (x.Key?.EndsWith("jpg") ?? false))
+            return _archive.Entries
+                .Where(IsImage)
                 .OrderBy(x => x.Key)
-                .Skip(page).FirstOrDefault();
-            return archiveEntry?.Key;
+                .Select(x => x.Key)
+                .ToList();
+        }
+        
+        public async Task<string> GetPageByInfo(string key)
+        {
+            if (!_loadedPages.TryGetValue(key, out var page))
+            {
+                var archiveEntry = _archive.Entries
+                    .Where(IsImage)
+                    .FirstOrDefault(x => x.Key == key);
+                if (archiveEntry == null)
+                {
+                    return null;
+                }
+
+                var memoryStream = new MemoryStream();
+                //has a yield to CopyToAsync to let UI go
+                await CopyToAsync(archiveEntry.OpenEntryStream(), memoryStream, 82 * 1000);
+                page = Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                _loadedPages.Add(key, page);
+            }
+            return page;
+        }
+        
+        private async ValueTask CopyToAsync(Stream source, Stream destination, int bufferSize)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            try
+            {
+                while (true)
+                {
+                    int bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false);
+                    if (bytesRead == 0) break;
+                    await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
+                    //lets UI thread update
+                    await Task.Yield();    
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
-        public async Task<string> GetPage(int page)
+        private bool IsImage(IArchiveEntry entry)
         {
-            var archiveEntry = _archive.Entries
-                .Where(x => !x.IsDirectory && (x.Key?.EndsWith("jpg") ?? false))
-                .OrderBy(x => x.Key)
-                .Skip(page).FirstOrDefault();
-            if (archiveEntry == null)
-            {
-                return null;
-            }
-            var memoryStream = new MemoryStream();
-            await archiveEntry.OpenEntryStream().CopyToAsync(memoryStream);
-            return Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int) memoryStream.Length);
+            return !entry.IsDirectory && ImageExtensions.Any(x => entry.Key.EndsWith(x, StringComparison.OrdinalIgnoreCase));
         }
 
         public void Dispose()

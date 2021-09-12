@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazorise.Bootstrap" Version="0.9.4.3" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="0.9.4.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.9" PrivateAssets="all" />
-    <PackageReference Include="sharpcompress" Version="0.28.3" />
+    <PackageReference Include="sharpcompress" Version="0.29.0" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
   </ItemGroup>
