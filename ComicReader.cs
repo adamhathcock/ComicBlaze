@@ -29,11 +29,7 @@ namespace ComicBlaze
                 .Where(x => !x.IsDirectory && (x.Key?.EndsWith("jpg") ?? false))
                 .OrderBy(x => x.Key)
                 .Skip(page).FirstOrDefault();
-            if (archiveEntry == null)
-            {
-                return null;
-            }
-            return archiveEntry.Key;
+            return archiveEntry?.Key;
         }
 
         public async Task<string> GetPage(int page)
