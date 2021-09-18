@@ -6,14 +6,33 @@
 @inject IFileReaderService FileReaderService;
 
 
-<Modal @ref="_modalRef" ShowBackdrop="true">
+<Modal @ref="_loadingModal" ShowBackdrop="true">
     <ModalContent IsCentered="true">
         <ModalBody>
             Loading @_pageInfo ...
         </ModalBody>
     </ModalContent>
+</Modal>    
+<Modal @ref="_pagesModal" ShowBackdrop="true">
+    <ModalContent IsCentered="true">     
+        <ModalHeader>
+            <ModalTitle>Pages</ModalTitle>
+            <CloseButton />       
+        </ModalHeader>
+        <ModalBody>     
+            @if (_reader != null)
+            {
+                <PageList Pages="_reader.GetFiles()"/>
+            }
+        </ModalBody>
+    </ModalContent>
 </Modal>
-<input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/>
+<input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/> 
+@if (_reader != null)
+{
+    <Button Clicked="@OnButtonClicked">Pages List</Button>
+}
+
 
 @if (_reader != null)
  {

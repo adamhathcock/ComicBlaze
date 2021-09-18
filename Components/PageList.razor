@@ -1,0 +1,14 @@
+@code {
+    
+    [Parameter]
+    public List<string> Pages { get; set; } = default!;
+
+}
+
+<ListGroup>     
+    @foreach (var p in Pages)
+    {
+        <ListGroupItem>@p</ListGroupItem>
+    }
+</ListGroup>
+            

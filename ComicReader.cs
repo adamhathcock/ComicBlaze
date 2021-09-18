@@ -39,6 +39,14 @@ namespace ComicBlaze
                 .ToList();
         }
         
+        public List<string> GetFiles()
+        {
+            return _archive.Entries
+                .OrderBy(x => x.Key)
+                .Select(x => x.Key)
+                .ToList();
+        }
+        
         public async Task<string?> GetPageByInfo(string key)
         {
             if (!_loadedPages.TryGetValue(key, out var page))

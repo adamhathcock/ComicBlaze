@@ -10,7 +10,8 @@ namespace ComicBlaze.Pages
     {
         private string? _pageInfo;
 
-        private Modal _modalRef = default!;
+        private Modal _loadingModal = default!;
+        private Modal _pagesModal = default!;
         private ComicReader? _reader;
         private ElementReference _inputTypeFileElement;
 
@@ -35,12 +36,12 @@ namespace ComicBlaze.Pages
                 _reader.LoadingPage = s =>
                 {
                     _pageInfo = s;
-                    _modalRef.Show();
+                    _loadingModal.Show();
                     StateHasChanged();
                 };
                 _reader.LoadedPage = s =>
                 {
-                    _modalRef.Hide();
+                    _loadingModal.Hide();
                     StateHasChanged();
                 };
             }
@@ -48,6 +49,11 @@ namespace ComicBlaze.Pages
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        private void OnButtonClicked()
+        {
+            _pagesModal.Show();
         }
     }
 }
