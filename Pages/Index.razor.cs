@@ -15,15 +15,22 @@ namespace ComicBlaze.Pages
         private ComicReader? _reader;
         private ElementReference _inputTypeFileElement;
 
-        private Carousel _carousel = default!;
+        private Carousel? _carousel;
 
         private void SelectedSlideChanged()
         {
-            _carousel.Timer.Stop();
+            _carousel?.Timer?.Stop();
+        }
+
+        protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+            _carousel?.Timer?.Stop();
         }
 
         private async Task ReadFile()
         {
+            _carousel?.Timer?.Stop();
             var file = (await FileReaderService.CreateReference(_inputTypeFileElement).EnumerateFilesAsync()).FirstOrDefault();
             if (file is null)
             {
@@ -35,6 +42,7 @@ namespace ComicBlaze.Pages
                 _reader = new ComicReader(stream);
                 _reader.LoadingPage = s =>
                 {
+                     _carousel?.Timer?.Stop();
                     _pageInfo = s;
                     _loadingModal.Show();
                     StateHasChanged();
