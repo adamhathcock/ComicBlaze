@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.Versioning;
 
-namespace ComicBlaze.Pages
+namespace ComicBlaze.Components
 {
     public record RuntimeInfo(string? Version, string? Framework, string OSDescription,
         string RuntimeIdentifier, string FrameworkDescription)

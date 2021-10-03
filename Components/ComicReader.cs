@@ -9,7 +9,7 @@ using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 
-namespace ComicBlaze
+namespace ComicBlaze.Components
 {
     public record ComicReaderPage(int Index, string Name, string? Page);
     public record ComicPageIndex(string Name, bool IsImage);
