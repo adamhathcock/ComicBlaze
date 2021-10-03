@@ -13,6 +13,7 @@ namespace ComicBlaze.Pages
 
         private Modal _loadingModal = default!;
         private Modal _pagesModal = default!;
+        private Modal _openModal = default!;
         private ComicReader? _reader;
         private ElementReference _inputTypeFileElement;
         
@@ -72,9 +73,13 @@ namespace ComicBlaze.Pages
             }
         }
 
-        private void OnButtonClicked()
+        private void PagesList()
         {
             _pagesModal.Show();
+        }
+        private void Open()
+        {
+            _openModal.Show();
         }
     }
 }

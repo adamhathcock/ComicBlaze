@@ -26,18 +26,50 @@
             }
         </ModalBody>
     </ModalContent>
+</Modal>  
+<Modal @ref="_openModal">
+    <ModalContent Centered="true">
+        <ModalHeader>
+            <ModalTitle>Open a file</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/> 
+        </ModalBody>
+    </ModalContent>
 </Modal>
-<input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/> 
-@if (_reader != null)
-{
-    <Buttons Margin="Blazorise.Margin.Is2.FromRight">          
-    <Button Clicked="@OnButtonClicked">Pages List</Button>
-<Button Color="Color.Primary" @onclick="Previous">Previous Page</Button>
-<Button Color="Color.Secondary" @onclick="Home">Home</Button>
-<Button Color="Color.Primary" @onclick="Next">Next Page</Button>
-</Buttons>
-}
-
+<Bar
+    Breakpoint="Breakpoint.Desktop"
+    Background="Background.Light"
+    ThemeContrast="ThemeContrast.Light"
+>
+    <BarBrand>
+        Comic Blaze
+    </BarBrand>
+    <BarToggler />
+    <BarMenu> 
+        <BarStart>   
+            <BarItem>
+                <BarLink Clicked="Open">Open</BarLink>
+            </BarItem>
+            @if (_reader != null)
+            {
+                <BarItem>
+                    <BarLink Clicked="Home">Home</BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink Clicked="Next">Next</BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink Clicked="Previous">Previous</BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink Clicked="PagesList">Pages List</BarLink>
+                </BarItem>
+            }
+        </BarStart>
+    </BarMenu>
+</Bar>
 
 @if (_comicBytes != null)
  {
@@ -47,5 +79,5 @@
 }
 else
 {
-    <Paragraph>Nothing loaded or invalid file</Paragraph>
+    <Card>Nothing loaded or invalid file</Card>
 }

@@ -54,7 +54,7 @@ namespace ComicBlaze
             if (key is null || !_loadedPages.TryGetValue(key, out var page))
             {
                 var entries = _archive.Entries.ToList();
-                if (index >= entries.Count)
+                if (index >= entries.Count || index < 0)
                 {
                     return null;
                 }
