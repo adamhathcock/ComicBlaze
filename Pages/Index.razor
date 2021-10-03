@@ -30,21 +30,22 @@
 <input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/> 
 @if (_reader != null)
 {
+    <Buttons Margin="Blazorise.Margin.Is2.FromRight">          
     <Button Clicked="@OnButtonClicked">Pages List</Button>
+<Button Color="Color.Primary" @onclick="Previous">Previous Page</Button>
+<Button Color="Color.Secondary" @onclick="Home">Home</Button>
+<Button Color="Color.Primary" @onclick="Next">Next Page</Button>
+</Buttons>
 }
 
 
-@if (_reader != null)
+@if (_comicBytes != null)
  {
-    <Carousel @ref="_carousel" Autoplay="false" SelectedSlideChanged="SelectedSlideChanged">  
-
-            @foreach(var pageInfo in _reader.GetPageInfos().Select(x => new [] {x}))
-            {
-                <CarouselSlide Name="@pageInfo[0]">    
-                    <Virtualize Context="x" Items="@pageInfo">
-                        <ComicPage Page=@x ComicReader="_reader" />
-                    </Virtualize>
-                </CarouselSlide>
-            }
-    </Carousel>
+     <Figure>
+         <FigureImage Source=@_comicBytes />
+     </Figure>
+}
+else
+{
+    <Paragraph>Nothing loaded or invalid file</Paragraph>
 }

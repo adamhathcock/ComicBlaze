@@ -9,28 +9,42 @@ namespace ComicBlaze.Pages
     public partial class Index : BaseComponent
     {
         private string? _pageInfo;
+        private string? _comicBytes;
 
         private Modal _loadingModal = default!;
         private Modal _pagesModal = default!;
         private ComicReader? _reader;
         private ElementReference _inputTypeFileElement;
+        
+        
+        private int _currentPage;
 
-        private Carousel? _carousel;
-
-        private void SelectedSlideChanged()
+        public async Task Home()
         {
-            _carousel?.Timer?.Stop();
+            await LoadPage(0);
+            _currentPage = 0;
         }
 
-        protected override void OnParametersSet()
+        private async Task Next()
         {
-            base.OnParametersSet();
-            _carousel?.Timer?.Stop();
+            await LoadPage(++_currentPage);
+        }
+
+        private async Task Previous()
+        {
+            await LoadPage(--_currentPage);
+        }
+
+        private async ValueTask LoadPage(int page)
+        {
+            if (_reader is not null)
+            {
+                _comicBytes = $"data:image/jpg;base64,{await _reader.GetPageByIndex(page)}";
+            }
         }
 
         private async Task ReadFile()
         {
-            _carousel?.Timer?.Stop();
             var file = (await FileReaderService.CreateReference(_inputTypeFileElement).EnumerateFilesAsync()).FirstOrDefault();
             if (file is null)
             {
@@ -42,7 +56,6 @@ namespace ComicBlaze.Pages
                 _reader = new ComicReader(stream);
                 _reader.LoadingPage = s =>
                 {
-                     _carousel?.Timer?.Stop();
                     _pageInfo = s;
                     _loadingModal.Show();
                     StateHasChanged();
