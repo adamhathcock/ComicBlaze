@@ -2,6 +2,7 @@
 @inherits BaseComponent
 
 @using Tewr.Blazor.FileReader
+@using System.Reflection
 
 @inject IFileReaderService FileReaderService;
 
@@ -37,6 +38,19 @@
             <input type="file" @ref="_inputTypeFileElement" @oninput=ReadFile/> 
         </ModalBody>
     </ModalContent>
+</Modal>    
+<Modal @ref="_aboutModal">
+    <ModalContent Centered="true">
+        <ModalHeader>
+            <ModalTitle>About</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Paragraph>
+                @RuntimeInfo.GetInfo().ToString()
+            </Paragraph>
+        </ModalBody>
+    </ModalContent>
 </Modal>
 <Bar
     Breakpoint="Breakpoint.Desktop"
@@ -67,7 +81,12 @@
                     <BarLink Clicked="PagesList">Pages List</BarLink>
                 </BarItem>
             }
-        </BarStart>
+        </BarStart>   
+        <BarEnd>
+            <BarItem>
+                <BarLink Clicked="About">About</BarLink>
+            </BarItem>
+        </BarEnd>
     </BarMenu>
 </Bar>
 
