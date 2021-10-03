@@ -71,13 +71,17 @@
     </BarMenu>
 </Bar>
 
-@if (_comicBytes != null)
+@if (_comicBytes is not null)
  {
      <Figure>
          <FigureImage Source=@_comicBytes />
      </Figure>
 }
-else
+else if (_currentInfo is not null)
 {
-    <Card>Nothing loaded or invalid file</Card>
+    <Card>Invalid file: @_currentInfo.Name</Card>
+} 
+else 
+{
+    <Card>Nothing loaded</Card>
 }

@@ -10,37 +10,48 @@ namespace ComicBlaze.Pages
     {
         private string? _pageInfo;
         private string? _comicBytes;
+        private ComicPageInfo? _currentInfo;
 
         private Modal _loadingModal = default!;
         private Modal _pagesModal = default!;
         private Modal _openModal = default!;
         private ComicReader? _reader;
         private ElementReference _inputTypeFileElement;
-        
-        
-        private int _currentPage;
 
         public async Task Home()
         {
             await LoadPage(0);
-            _currentPage = 0;
         }
 
         private async Task Next()
         {
-            await LoadPage(++_currentPage);
+            await LoadPage((_currentInfo?.Index ?? 0)  + 1);
         }
 
         private async Task Previous()
         {
-            await LoadPage(--_currentPage);
+            await LoadPage((_currentInfo?.Index ?? 0)  +-1);
         }
 
         private async ValueTask LoadPage(int page)
         {
             if (_reader is not null)
             {
-                _comicBytes = $"data:image/jpg;base64,{await _reader.GetPageByIndex(page)}";
+                var info = await _reader.GetPageByIndex(page);
+                if (info is null)
+                {
+                    _currentInfo = null;
+                    return;
+                }
+                _currentInfo = info;
+                if (info.Page is null)
+                {
+                    _comicBytes = null;
+                }
+                else
+                {
+                    _comicBytes = $"data:image/jpg;base64,{info.Page}";
+                }
             }
         }
 
@@ -66,6 +77,8 @@ namespace ComicBlaze.Pages
                     _loadingModal.Hide();
                     StateHasChanged();
                 };
+                await Home();
+                _openModal.Hide();
             }
             catch (Exception ex)
             {

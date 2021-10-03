@@ -11,12 +11,13 @@ using SharpCompress.Readers;
 
 namespace ComicBlaze
 {
-    public record ComicPageIndex(int Index, string Name);
+    public record ComicPageInfo(int Index, string Name, string? Page);
     public class ComicReader : IDisposable
     {
+        public record ComicPageIndex(int Index, string Name);
         private readonly IArchive _archive;
 
-        private readonly Dictionary<ComicPageIndex, string> _loadedPages = new ();
+        private readonly Dictionary<ComicPageIndex, string?> _loadedPages = new ();
 
         private static readonly string[] ImageExtensions = { ".jpg", ".png", ".jpeg" };
 
@@ -30,16 +31,7 @@ namespace ComicBlaze
                 ArchiveEncoding = new ArchiveEncoding(Encoding.Default, Encoding.Default)
             });
         }
-        
-        public List<string> GetPageInfos()
-        {
-            return _archive.Entries
-                .Where(IsImage)
-                .OrderBy(x => x.Key)
-                .Select(x => x.Key)
-                .ToList();
-        }
-        
+
         public List<string> GetFiles()
         {
             return _archive.Entries
@@ -48,7 +40,7 @@ namespace ComicBlaze
                 .ToList();
         }
         
-        public async Task<string?> GetPageByIndex(int index)
+        public async Task<ComicPageInfo?> GetPageByIndex(int index)
         {
             var key = _loadedPages.Keys.FirstOrDefault(x => x.Index == index);
             if (key is null || !_loadedPages.TryGetValue(key, out var page))
@@ -61,7 +53,8 @@ namespace ComicBlaze
                 var archiveEntry = entries[index];
                 if (!IsImage(archiveEntry))
                 {
-                    return null;
+                    _loadedPages.Add(new (index, archiveEntry.Key), null);
+                    return new(index, archiveEntry.Key, null);
                 }
 
                 LoadingPage?.Invoke(archiveEntry.Key);
@@ -74,11 +67,12 @@ namespace ComicBlaze
                 _loadedPages.Add(new (index, archiveEntry.Key), page);
                 LoadedPage?.Invoke(archiveEntry.Key);
                 await Task.Yield();
+                return new(index, archiveEntry.Key, page);
             }
-            return page;
+            return new(key.Index, key.Name, page);
         }
         
-        public async Task<string?> GetPageByInfo(string name)
+        public async Task<ComicPageInfo?> GetPageByInfo(string name)
         {
             var key = _loadedPages.Keys.FirstOrDefault(x => x.Name == name);
             if (key is null || !_loadedPages.TryGetValue(key, out var page))
@@ -90,8 +84,13 @@ namespace ComicBlaze
                 {
                     return null;
                 }
-
                 var index = _archive.Entries.ToList().IndexOf(archiveEntry);
+                if (!IsImage(archiveEntry))
+                {
+                    _loadedPages.Add(new (index, archiveEntry.Key), null);
+                    return new(index, archiveEntry.Key, null);
+                }
+
 
                 LoadingPage?.Invoke(archiveEntry.Key);
                 await Task.Yield();
@@ -103,8 +102,9 @@ namespace ComicBlaze
                 _loadedPages.Add(new(index, archiveEntry.Key), page);
                 LoadedPage?.Invoke(archiveEntry.Key);
                 await Task.Yield();
+                return new(index, archiveEntry.Key, page);
             }
-            return page;
+            return new(key.Index, key.Name, page);
         }
         
         private async ValueTask CopyToAsync(Stream source, Stream destination, int bufferSize)
