@@ -39,15 +39,13 @@
     </ModalContent>
 </Modal>    
 <Modal @ref="_aboutModal">
-    <ModalContent Centered="true" Size="ModalSize.Large">
+    <ModalContent Centered="true" Size="ModalSize.ExtraLarge" Scrollable="true">
         <ModalHeader>
             <ModalTitle>About</ModalTitle>
             <CloseButton />
         </ModalHeader>
         <ModalBody>
-            <Paragraph>
-                @RuntimeInfo.GetInfo().ToString()
-            </Paragraph>
+            <About/>
         </ModalBody>
     </ModalContent>
 </Modal>

@@ -1,0 +1,32 @@
+@code
+{ 
+    public RuntimeInfo runtimeInfo = RuntimeInfo.GetInfo();
+}
+
+<Paragraph>
+    <Table>
+        <TableBody>
+            <TableRow>
+                <TableRowHeader>Version</TableRowHeader>
+                <TableRowCell>@runtimeInfo.Version</TableRowCell>
+            </TableRow>
+            <TableRow>
+                <TableRowHeader>Framework</TableRowHeader>
+                <TableRowCell>@runtimeInfo.Framework</TableRowCell>
+            </TableRow>
+            <TableRow>
+                <TableRowHeader>Framework Description</TableRowHeader>
+                <TableRowCell>@runtimeInfo.FrameworkDescription</TableRowCell>
+            </TableRow>  
+            <TableRow>
+                <TableRowHeader>Runtime Identifier</TableRowHeader>
+                <TableRowCell>@runtimeInfo.RuntimeIdentifier</TableRowCell>
+            </TableRow>   
+            <TableRow>
+                <TableRowHeader>OS Description</TableRowHeader>
+                <TableRowCell>@runtimeInfo.OSDescription</TableRowCell>
+            </TableRow>
+        </TableBody>
+    </Table>
+
+</Paragraph>
