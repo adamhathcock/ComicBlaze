@@ -1,14 +1,26 @@
 @code {
     
     [Parameter]
-    public List<string> Pages { get; set; } = default!;
+    public List<ComicPageIndex> Pages { get; set; } = default!;
 
+    [Parameter]
+    public Func<ComicPageIndex, Task>? PageClicked { get; set; }
+}
+@code {
+    private async Task Callback(ComicPageIndex page)
+    {
+        if (PageClicked is not null)
+        {
+            await PageClicked(page);
+        }
+    }
 }
 
-<ListGroup>     
+
+<ListGroup Mode="ListGroupMode.Selectable">     
     @foreach (var p in Pages)
     {
-        <ListGroupItem>@p</ListGroupItem>
+        <ListGroupItem Clicked="async () => { await Callback(p); }">@p.Name</ListGroupItem>
     }
 </ListGroup>
             

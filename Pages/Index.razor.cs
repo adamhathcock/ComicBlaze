@@ -10,7 +10,7 @@ namespace ComicBlaze.Pages
     {
         private string? _pageInfo;
         private string? _comicBytes;
-        private ComicPageInfo? _currentInfo;
+        private ComicReaderPage? _currentInfo;
 
         private Modal _loadingModal = default!;
         private Modal _pagesModal = default!;
@@ -33,18 +33,29 @@ namespace ComicBlaze.Pages
         {
             await LoadPage((_currentInfo?.Index ?? 0)  +-1);
         }
+        
+        private async ValueTask LoadPage(ComicPageIndex page)
+        {
+            await LoadPage(_reader!.GetPage(page));
+        } 
 
         private async ValueTask LoadPage(int page)
         {
+            await LoadPage(_reader!.GetPageByIndex(page));
+        }
+        
+        private async ValueTask LoadPage(ValueTask<ComicReaderPage?> loader)
+        {
             if (_reader is not null)
             {
-                var info = await _reader.GetPageByIndex(page);
+                var info = await loader;
                 if (info is null)
                 {
                     _currentInfo = null;
                     return;
                 }
                 _currentInfo = info;
+                Console.WriteLine($"Switching bytes to {info.Name}");
                 if (info.Page is null)
                 {
                     _comicBytes = null;
@@ -67,16 +78,22 @@ namespace ComicBlaze.Pages
             {
                 var stream = await file.CreateMemoryStreamAsync();
                 _reader = new ComicReader(stream);
-                _reader.LoadingPage = s =>
+                _reader.LoadingPage = async s =>
                 {
+                    Console.WriteLine($"Loading {s}");
                     _pageInfo = s;
                     _loadingModal.Show();
                     StateHasChanged();
+                    await Task.Yield();
+                    Console.WriteLine($"Loading2 {s}");
                 };
-                _reader.LoadedPage = s =>
+                _reader.LoadedPage = async s =>
                 {
+                    Console.WriteLine($"Loaded {s}");
                     _loadingModal.Hide();
                     StateHasChanged();
+                    await Task.Yield();
+                    Console.WriteLine($"Loaded2 {s}");
                 };
                 await Home();
                 _openModal.Hide();
@@ -98,6 +115,14 @@ namespace ComicBlaze.Pages
         private void About()
         {
             _aboutModal.Show();
+        }
+        
+        private async Task PageClicked(ComicPageIndex page)
+        {
+            _pagesModal.Hide();
+            StateHasChanged();
+            await Task.Yield();
+            await LoadPage(page);
         }
     }
 }

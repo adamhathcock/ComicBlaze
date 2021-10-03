@@ -11,18 +11,20 @@ using SharpCompress.Readers;
 
 namespace ComicBlaze
 {
-    public record ComicPageInfo(int Index, string Name, string? Page);
+    public record ComicReaderPage(int Index, string Name, string? Page);
+    public record ComicPageIndex(string Name, bool IsImage);
     public class ComicReader : IDisposable
     {
-        public record ComicPageIndex(int Index, string Name);
         private readonly IArchive _archive;
 
         private readonly Dictionary<ComicPageIndex, string?> _loadedPages = new ();
 
         private static readonly string[] ImageExtensions = { ".jpg", ".png", ".jpeg" };
 
-        public Action<string>? LoadingPage { get; set; }
-        public Action<string>? LoadedPage { get; set; }
+        public Func<string, Task>? LoadingPage { get; set; }
+        public Func<string, Task>? LoadedPage { get; set; }
+
+        public readonly List<ComicPageIndex> Index = new();
 
         public ComicReader(Stream stream)
         {
@@ -30,81 +32,66 @@ namespace ComicBlaze
             {
                 ArchiveEncoding = new ArchiveEncoding(Encoding.Default, Encoding.Default)
             });
+            LoadIndex();
         }
 
-        public List<string> GetFiles()
+        private void LoadIndex()
         {
-            return _archive.Entries
-                .OrderBy(x => x.Key)
-                .Select(x => x.Key)
-                .ToList();
-        }
-        
-        public async Task<ComicPageInfo?> GetPageByIndex(int index)
-        {
-            var key = _loadedPages.Keys.FirstOrDefault(x => x.Index == index);
-            if (key is null || !_loadedPages.TryGetValue(key, out var page))
+            foreach (var archiveEntry in _archive.Entries)
             {
-                var entries = _archive.Entries.ToList();
-                if (index >= entries.Count || index < 0)
-                {
-                    return null;
-                }
-                var archiveEntry = entries[index];
-                if (!IsImage(archiveEntry))
-                {
-                    _loadedPages.Add(new (index, archiveEntry.Key), null);
-                    return new(index, archiveEntry.Key, null);
-                }
-
-                LoadingPage?.Invoke(archiveEntry.Key);
-                await Task.Yield();
-
-                var memoryStream = new MemoryStream();
-                //has a yield to CopyToAsync to let UI go
-                await CopyToAsync(archiveEntry.OpenEntryStream(), memoryStream, 82 * 1000);
-                page = Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                _loadedPages.Add(new (index, archiveEntry.Key), page);
-                LoadedPage?.Invoke(archiveEntry.Key);
-                await Task.Yield();
-                return new(index, archiveEntry.Key, page);
+                Index.Add(new(archiveEntry.Key, IsImage(archiveEntry))); 
             }
-            return new(key.Index, key.Name, page);
+            Index.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
         }
         
-        public async Task<ComicPageInfo?> GetPageByInfo(string name)
+        public async ValueTask<ComicReaderPage?> GetPageByIndex(int index)
         {
-            var key = _loadedPages.Keys.FirstOrDefault(x => x.Name == name);
-            if (key is null || !_loadedPages.TryGetValue(key, out var page))
+            if (index >= Index.Count || index < 0)
+            {
+                return null;
+            }
+            var key = Index[index];
+            return await GetPage(key);
+        }
+        
+        public async ValueTask<ComicReaderPage?> GetPageByInfo(string name)
+        {
+            var key = Index.FirstOrDefault(x => x.Name == name);
+            if (key is null || key.IsImage)
+            {
+                return null;
+            }
+            return await GetPage(key);
+        }
+
+        public async ValueTask<ComicReaderPage?> GetPage(ComicPageIndex key)
+        {
+            var index = Index.IndexOf(key);
+            if (!_loadedPages.TryGetValue(key, out var page))
             {
                 var archiveEntry = _archive.Entries
-                    .Where(IsImage)
-                    .FirstOrDefault(x => x.Key == name);
+                    .FirstOrDefault(x => x.Key == key.Name);
                 if (archiveEntry == null)
                 {
                     return null;
                 }
-                var index = _archive.Entries.ToList().IndexOf(archiveEntry);
-                if (!IsImage(archiveEntry))
+                if (LoadingPage is not null)
                 {
-                    _loadedPages.Add(new (index, archiveEntry.Key), null);
-                    return new(index, archiveEntry.Key, null);
+                    await LoadingPage.Invoke(archiveEntry.Key);
                 }
-
-
-                LoadingPage?.Invoke(archiveEntry.Key);
-                await Task.Yield();
 
                 var memoryStream = new MemoryStream();
                 //has a yield to CopyToAsync to let UI go
                 await CopyToAsync(archiveEntry.OpenEntryStream(), memoryStream, 82 * 1000);
                 page = Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                _loadedPages.Add(new(index, archiveEntry.Key), page);
-                LoadedPage?.Invoke(archiveEntry.Key);
-                await Task.Yield();
+                _loadedPages.Add(key, page);
+                if (LoadedPage is not null)
+                {
+                    await LoadedPage.Invoke(archiveEntry.Key);
+                }
                 return new(index, archiveEntry.Key, page);
             }
-            return new(key.Index, key.Name, page);
+            return new(index, key.Name, page); 
         }
         
         private async ValueTask CopyToAsync(Stream source, Stream destination, int bufferSize)

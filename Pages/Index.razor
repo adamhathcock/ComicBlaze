@@ -2,7 +2,6 @@
 @inherits BaseComponent
 
 @using Tewr.Blazor.FileReader
-@using System.Reflection
 
 @inject IFileReaderService FileReaderService;
 
@@ -10,7 +9,7 @@
 <Modal @ref="_loadingModal" ShowBackdrop="true">
     <ModalContent IsCentered="true">
         <ModalBody>
-            Loading @_pageInfo ...
+            Extracting @_pageInfo ...
         </ModalBody>
     </ModalContent>
 </Modal>    
@@ -23,7 +22,7 @@
         <ModalBody>     
             @if (_reader != null)
             {
-                <PageList Pages="_reader.GetFiles()"/>
+                <PageList Pages="_reader.Index" PageClicked="PageClicked"/>
             }
         </ModalBody>
     </ModalContent>
