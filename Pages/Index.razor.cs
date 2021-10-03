@@ -27,12 +27,22 @@ namespace ComicBlaze.Pages
 
         private async Task Next()
         {
-            await LoadPage((_currentInfo?.Index ?? 0)  + 1);
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+                LoadPage((_currentInfo?.Index ?? 0) + 1);
+            });
+            await Task.Yield();
         }
 
         private async Task Previous()
         {
-            await LoadPage((_currentInfo?.Index ?? 0)  +-1);
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+                LoadPage((_currentInfo?.Index ?? 0) - 1);
+            });
+            await Task.Yield();
         }
         
         private async ValueTask LoadPage(ComicPageIndex page)
@@ -49,6 +59,8 @@ namespace ComicBlaze.Pages
         {
             if (_reader is not null)
             {
+                StateHasChanged();
+                await Task.Yield();
                 var info = await loader;
                 if (info is null)
                 {
@@ -65,6 +77,8 @@ namespace ComicBlaze.Pages
                 {
                     _comicBytes = $"data:image/jpg;base64,{info.Page}";
                 }
+                StateHasChanged();
+                await Task.Yield();
             }
         }
 
@@ -121,9 +135,12 @@ namespace ComicBlaze.Pages
         private async Task PageClicked(ComicPageIndex page)
         {
             _pagesModal.Hide();
-            StateHasChanged();
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+                LoadPage(page);
+            });
             await Task.Yield();
-            await LoadPage(page);
         }
     }
 }
